@@ -17,6 +17,11 @@ impl ByteBuilder {
         self
     }
 
+    pub fn add_u64(mut self, val: u64) -> Self {
+        self.bytes.extend_from_slice(&val.to_le_bytes());
+        self
+    }
+
     pub fn build(self) -> Vec<u8> {
         self.bytes
     }
