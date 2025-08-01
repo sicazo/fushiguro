@@ -1,4 +1,4 @@
-use crate::util::byte_builder::ByteBuilder;
+use crate::{transaction::Transaction, util::byte_builder::ByteBuilder};
 use serde::{Deserialize, Serialize};
 use sha256::digest;
 
@@ -9,20 +9,26 @@ pub struct Block {
     pub index: i64,
     // unix style timestamp
     pub created: i64,
-    pub data: String,
+    pub data: Vec<Transaction>,
     pub previous_hash: String,
     pub hash: String,
     pub nonce: u64,
 }
 
 impl Block {
-    pub fn new(index: i64, created: i64, data: String, previous_hash: String, nonce: u64) -> Self {
+    pub fn new(
+        index: i64,
+        created: i64,
+        data: Vec<Transaction>,
+        previous_hash: String,
+        nonce: u64,
+    ) -> Self {
         let mut byte_builder = ByteBuilder::new();
-        byte_builder = byte_builder.add_i64(index);
-        byte_builder = byte_builder.add_i64(created);
-        byte_builder = byte_builder.add_string(data.as_str());
-        byte_builder = byte_builder.add_string(previous_hash.as_str());
-        byte_builder = byte_builder.add_u64(nonce);
+        byte_builder.add_i64(index);
+        byte_builder.add_i64(created);
+        byte_builder.add_transactions(&data);
+        byte_builder.add_string(previous_hash.as_str());
+        byte_builder.add_u64(nonce);
 
         let hash = digest(byte_builder.build());
 
@@ -36,16 +42,21 @@ impl Block {
         }
     }
 
-    pub fn mine_block(index: i64, created: i64, data: String, previous_hash: String) -> Self {
+    pub fn mine_block(
+        index: i64,
+        created: i64,
+        data: Vec<Transaction>,
+        previous_hash: String,
+    ) -> Self {
         let mut nonce: u64 = 0;
 
         loop {
             let mut builder = ByteBuilder::new();
-            builder = builder.add_i64(index);
-            builder = builder.add_i64(created);
-            builder = builder.add_string(data.as_str());
-            builder = builder.add_string(previous_hash.as_str());
-            builder = builder.add_u64(nonce);
+            builder.add_i64(index);
+            builder.add_i64(created);
+            builder.add_transactions(&data);
+            builder.add_string(previous_hash.as_str());
+            builder.add_u64(nonce);
 
             let hash = digest(builder.build());
 
